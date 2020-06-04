@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, Platform ,FlatList } from 'react-native';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, Platform ,FlatList ,Image } from 'react-native';
 import requestCameraAndAudioPermission from './permission';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const conversationListArr= [
     { name : 'Dhruv bhagat' , chennelId: 'db123'},
@@ -46,10 +47,15 @@ async renderChannel(item){
     return (
       <View style={styles.container}>
         {this.state.channelList && this.state.channelList.length &&
-            this.state.channelList.map((item)=> {
+            this.state.channelList.map((item,i)=> {
                 return(
                     <TouchableOpacity style={styles.chennelContainer} onPress={()=> this.handleSubmit(item.chennelId)}>
-                    <Text>{item.name}</Text>
+                    <Image
+                    style={styles.userImage}
+                      backgroundColor="grey"
+                      source={{uri : 'https://i.picsum.photos/id/19'+i+'/300/300.jpg'}}>
+                    </Image> 
+                   <Text style={styles.userNameText}>{item.name}</Text>
                     </TouchableOpacity>
                 )
             })
@@ -78,20 +84,31 @@ const styles = StyleSheet.create({
   container: {
     // alignItems: 'center',
     marginTop: 0,
-    padding: 20,
+    paddingVertical: 20,
     flex: 1,
     backgroundColor: '#ffffff',
   },
   chennelContainer:{
-    borderWidth:0.5,
-    borderRadius:10,
+    alignItems:'center',
+    borderWidth:0.4,
+    borderRadius:5,
     flexDirection:'row',
     marginVertical:5,
+    marginHorizontal:10,
     paddingVertical:10,
     paddingLeft:10
-  }
-
-
+  },
+userImage: {
+  height :50,
+  width : 50,
+  borderRadius:25,
+  marginHorizontal: 8,
+}, 
+userNameText :{
+  fontSize:18,
+  marginLeft:8,
+  fontWeight:'600'
+}
 });
 
 export default ConversationList;
