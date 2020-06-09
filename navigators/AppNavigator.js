@@ -12,6 +12,7 @@ import { createStackNavigator } from 'react-navigation-stack';
 import Home from '../component/Home';
 import Video from '../component/Video';
 import ConversationList from '../component/conversationList';
+import UsersList from '../component/usersList';
 
 const AuthStack = createStackNavigator({
     HomeScreen: {
@@ -19,6 +20,9 @@ const AuthStack = createStackNavigator({
     },
     ConversationListScreen: {
         screen: ConversationList,
+    },
+    UsersListScreen : {
+        screen: UsersList,
     },
     VideoScreen: {
         screen: Video,

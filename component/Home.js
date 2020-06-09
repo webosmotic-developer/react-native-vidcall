@@ -35,6 +35,8 @@ class Home extends Component {
  
   handleSubmit = () => {
     if (this.state.selectedUSer !== '') {
+      AsyncStorage.setItem('userId',this.state.selectedUSer)
+      AsyncStorage.setItem('userName',this.state.usersList[this.state.usersList.findIndex((obj)=> {return obj.key == this.state.selectedUSer})].name);
       this.props.navigation.navigate('ConversationListScreen');
     }
   }
@@ -64,8 +66,7 @@ class Home extends Component {
             <Picker style={styles.pickerStyle}  
                         selectedValue={this.state.selectedUSer}  
                         onValueChange={(itemValue, itemPosition) =>  {
-                          AsyncStorage.setItem('userId',itemValue)
-                          this.setState({
+                                   this.setState({
                             selectedUSer: itemValue
                           })
                         }}

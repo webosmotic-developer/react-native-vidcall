@@ -12,7 +12,7 @@ const conversationListArr= [
     { name : 'Vipul jain' , chennelId: 'vj123'},
     ]
 
-class ConversationList extends Component {
+class UsersList extends Component {
 
   constructor(props) {
     super(props);
@@ -38,38 +38,54 @@ class ConversationList extends Component {
     }
   }
  
+
 async getUsers(){
-   let convDB = firestore().collection('conversations');
-   const currentUserId = await AsyncStorage.getItem('userId')
-   const currentUserName = await AsyncStorage.getItem('userName')
-   console.log('user ',currentUserId ,currentUserName);
-   let convRef = convDB.where( "users","array-contains", { userId: currentUserId , name:currentUserName });
-  //  let convRef = convDB.where( "users","array-contains", { userId: currentUserId});
-  //  console.log('data : ', convRef);
-  return convRef.onSnapshot(async (querySnapshot) => {
+   let userRef = firestore().collection('users');
+   console.log('data : ', userRef);
+   const currentUserId= await AsyncStorage.getItem('userId')
+  return userRef.onSnapshot(async (querySnapshot) => {
     let data = await querySnapshot.docs.map((documentSnapshot, i) => {
         return {
             ...documentSnapshot.data(),
             key: documentSnapshot.id,
         };
     });
-    console.log('data', data);
-    // data.splice(data.findIndex((obj)=> {return obj.key == currentUserId}),1); // remove loggedIn user
+    data.splice(data.findIndex((obj)=> {return obj.key == currentUserId}),1); // remove loggedIn user
     this.setState({
       channelList : data,
-      userId : currentUserId
+      userId : currentUserId,
+      userName : await AsyncStorage.getItem('userName')
   });
   });
 }
 
+ onSelectUser = async (selectedUser) => {
+  const chennelId = await this.createChannelId(selectedUser.key);
+  let conversationDB = firestore().collection('conversations');
+  const conversationRef = conversationDB.where('chennelId','==',chennelId);
+ const availablConversations = await conversationRef.get();
+ let AppID = this.state.AppID; 
+ console.log('chennelId',chennelId)
+ if(!availablConversations.docs.length){
+     const newConversationObj = {
+        chennelId,
+        users : [{
+            userId: selectedUser.key,
+            name : selectedUser.name
+        },{
+            userId: this.state.userId,
+            name :  this.state.userName
+        }
+    ]
+     }
+    await conversationDB.add(newConversationObj)
+ }
+this.props.navigation.navigate('VideoScreen',{ AppID, chennelId });
 
- handleSubmit = async (selectedUserID) => {
-  const chennelId = await this.createChannelId(selectedUserID);
-   console.log('chennelId',chennelId)
-    let AppID = this.state.AppID;
-    if (AppID !== '' && chennelId !== '') {
-      this.props.navigation.navigate('VideoScreen',{ AppID, chennelId });
-    }
+
+    // let AppID = this.state.AppID;
+    // if (AppID !== '' && chennelId !== '') {
+    // }
   }
 
 //  Create cgennel ID by aflgabatical wise string of both users id
@@ -94,26 +110,20 @@ console.log('chennelId : ',str);
   render() {
     return (
       <View style={styles.container}>
-        {this.state.channelList && this.state.channelList.length ?
+        {this.state.channelList && this.state.channelList.length &&
             this.state.channelList.map((item,i)=> {
                 return(
-                    <TouchableOpacity key={item.key} style={styles.chennelContainer} onPress={()=> this.handleSubmit(item.key)}>
+                    <TouchableOpacity key={item.key} style={styles.chennelContainer} onPress={()=> this.onSelectUser(item)}>
                     <Image
                     style={styles.userImage}
                       backgroundColor="grey"
                       source={{uri : 'https://i.picsum.photos/id/19'+i+'/300/300.jpg'}}>
                     </Image> 
-                    {item.users && item.users.length && console.log('--> ',item.users[1])}
-                   {item.users && item.users.length && <Text style={styles.userNameText}>{ (item.users[0].userId !== this.state.userId)  ? item.users[0].name: item.users[1].name}</Text>}
+                   <Text style={styles.userNameText}>{item.name}</Text>
                     </TouchableOpacity>
                 )
             })
-            :
-            <View><Text> You dont have any conversation yet</Text></View>
         }
-        <TouchableOpacity style={styles.addButton} onPress={()=>this.props.navigation.navigate('UsersListScreen')} >
-   <Icon name="plus"  size={40} color="#01a699" />
-  </TouchableOpacity>
       </View>
     );
   }
@@ -147,20 +157,7 @@ userNameText :{
   fontSize:18,
   marginLeft:8,
   fontWeight:'600'
-},
-addButton :{
-  borderWidth:1,
-  borderColor:'rgba(0,0,0,0.2)',
-  alignItems:'center',
-  justifyContent:'center',
-  width:70,
-  position: 'absolute',                                          
-  bottom: 15,                                                    
-  right: 15,
-  height:70,
-  backgroundColor:'#fff',
-  borderRadius:100,
 }
 });
 
-export default ConversationList;
+export default UsersList;
