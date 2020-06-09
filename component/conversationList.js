@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, Platform ,FlatList ,Image } from 'react-native';
+import { View, StyleSheet, Text, AsyncStorage, TouchableOpacity, Platform ,FlatList ,Image } from 'react-native';
 import requestCameraAndAudioPermission from './permission';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import firestore from '@react-native-firebase/firestore';
 
 const conversationListArr= [
     { name : 'Dhruv bhagat' , chennelId: 'db123'},
@@ -27,20 +28,63 @@ class ConversationList extends Component {
     }
   }
 
- handleSubmit = (ChannelName) => {
+ async componentDidMount(){
+   await this.getUsers();
+  }
+
+  async componentDidUnMount(){
+    if(this.state.userSubRef){
+      this.state.userSubRef();
+    }
+  }
+ 
+
+async getUsers(){
+   let userRef = firestore().collection('users');
+   console.log('data : ', userRef);
+   const currentUserId= await AsyncStorage.getItem('userId')
+  return userRef.onSnapshot(async (querySnapshot) => {
+    let data = await querySnapshot.docs.map((documentSnapshot, i) => {
+        return {
+            ...documentSnapshot.data(),
+            key: documentSnapshot.id,
+        };
+    });
+    data.splice(data.findIndex((obj)=> {return obj.key == currentUserId}),1); // remove loggedIn user
+    this.setState({
+      channelList : data,
+      userId : currentUserId
+  });
+  });
+}
+
+
+ handleSubmit = async (selectedUserID) => {
+  const chennelId = await this.createChannelId(selectedUserID);
+   console.log('chennelId',chennelId)
     let AppID = this.state.AppID;
-    if (AppID !== '' && ChannelName !== '') {
-      this.props.navigation.navigate('VideoScreen',{ AppID, ChannelName });
+    if (AppID !== '' && chennelId !== '') {
+      this.props.navigation.navigate('VideoScreen',{ AppID, chennelId });
     }
   }
 
-
-
-async renderChannel(item){
-    return (<View>
-    {/* <Item title={item.name} /> */}
-    <Text> {item.name}</Text>
-    </View>)
+//  Create cgennel ID by aflgabatical wise string of both users id
+async createChannelId(selectedUserID){
+  const str = selectedUserID +''+this.state.userId
+console.log('chennelId : ',str);
+  var arr = str.split('');
+  var tmp;
+  for(var i = 0; i < arr.length; i++){
+    for(var j = i + 1; j < arr.length; j++){
+      /* if ASCII code greater then swap the elements position*/
+      if(arr[i] > arr[j]){
+        tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+    }
+  }
+ return arr.join('');
 }
 
   render() {
@@ -49,7 +93,7 @@ async renderChannel(item){
         {this.state.channelList && this.state.channelList.length &&
             this.state.channelList.map((item,i)=> {
                 return(
-                    <TouchableOpacity style={styles.chennelContainer} onPress={()=> this.handleSubmit(item.chennelId)}>
+                    <TouchableOpacity key={item.key} style={styles.chennelContainer} onPress={()=> this.handleSubmit(item.key)}>
                     <Image
                     style={styles.userImage}
                       backgroundColor="grey"
@@ -60,21 +104,6 @@ async renderChannel(item){
                 )
             })
         }
-        {/* <Text style={styles.formLabel}>Channel Name</Text>
-        <TextInput
-          style={styles.formInput}
-          onChangeText={(ChannelName) => this.setState({ ChannelName })}
-          value={this.state.ChannelName}
-        />
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            title="Start Call!"
-            onPress={this.handleSubmit}
-            style={styles.submitButton}
-          >
-            <Text style={{ color: '#ffffff' }}> Start Call </Text>
-          </TouchableOpacity>
-        </View> */}
       </View>
     );
   }

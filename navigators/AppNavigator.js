@@ -17,15 +17,16 @@ const AuthStack = createStackNavigator({
     HomeScreen: {
         screen: Home,
     },
+    ConversationListScreen: {
+        screen: ConversationList,
+    },
     VideoScreen: {
         screen: Video,
          navigationOptions: {
             headerShown: false,
         },
     },
-    ConversationListScreen: {
-        screen: ConversationList,
-    },
+   
 
 });
 

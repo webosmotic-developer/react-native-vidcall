@@ -1,15 +1,17 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, Platform ,AsyncStorage ,Picker} from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import requestCameraAndAudioPermission from './permission';
+import firestore from '@react-native-firebase/firestore';
 
 class Home extends Component {
 
   constructor(props) {
+   
     super(props);
     this.state = {
       AppID: 'c8dce22b6277415da8f7a9c1727efc70',                    //Set your APPID here
-      ChannelName: '',                                  //Set a default channel or leave blank
+      selectedUSer:''
     };
     if (Platform.OS === 'android') {                    //Request required permissions from Android
       requestCameraAndAudioPermission().then(_ => {
@@ -18,33 +20,72 @@ class Home extends Component {
     }
   }
 
- handleSubmit = () => {
-    let AppID = this.state.AppID;
-    let ChannelName = this.state.ChannelName;
-    if (AppID !== '' && ChannelName !== '') {
-      // this.props.navigation.navigate('VideoScreen',{ AppID, ChannelName });
+  async componentDidMount(){
+   const userSubRef =  await this.getUsers();
+   this.setState({
+    userSubRef
+   })
+  }
+
+  async componentDidUnMount(){
+    if(this.state.userSubRef){
+      this.state.userSubRef();
+    }
+  }
+ 
+  handleSubmit = () => {
+    if (this.state.selectedUSer !== '') {
       this.props.navigation.navigate('ConversationListScreen');
     }
-    // Actions.home({ AppID, ChannelName });
   }
+
+  // Get List Of users
+  async getUsers(){
+    let userRef = firestore().collection('users');
+    console.log('data : ', userRef);
+    return userRef.onSnapshot(async (querySnapshot) => {
+      console.log('querySnapshot -> ', querySnapshot);
+     let data = await querySnapshot.docs.map((documentSnapshot, i) => {
+         return {
+             ...documentSnapshot.data(),
+             key: documentSnapshot.id,
+         };
+     });
+     this.setState({
+       usersList : data
+   });
+   });
+ }
+
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.formLabel}>Channel Name</Text>
-        <TextInput
-          style={styles.formInput}
-          onChangeText={(ChannelName) => this.setState({ ChannelName })}
-          value={this.state.ChannelName}
-        />
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            title="Start Call!"
-            onPress={this.handleSubmit}
-            style={styles.submitButton}
-          >
-            <Text style={{ color: '#ffffff' }}> Start Call </Text>
-          </TouchableOpacity>
-        </View>
+         <Text style={styles.formLabel}>Login as</Text>
+            <Picker style={styles.pickerStyle}  
+                        selectedValue={this.state.selectedUSer}  
+                        onValueChange={(itemValue, itemPosition) =>  {
+                          AsyncStorage.setItem('userId',itemValue)
+                          this.setState({
+                            selectedUSer: itemValue
+                          })
+                        }}
+                    >  
+              {this.state.usersList && this.state.usersList.length ? 
+                (
+                  this.state.usersList.map((obj) => {
+                    return (<Picker.Item label={obj.name} value={obj.key} />)
+                  }) )
+                : 
+                  <Picker.Item label='no user available' value='' />}
+          </Picker> 
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              title="Start Call!"
+              onPress={this.handleSubmit}
+              style={styles.submitButton}>
+              <Text style={{ color: '#ffffff' }}> Login </Text>
+            </TouchableOpacity>
+          </View>
       </View>
     );
   }
@@ -53,6 +94,7 @@ class Home extends Component {
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
+    alignItems:'center',
     marginTop: 0,
     padding: 20,
     flex: 1,
@@ -80,6 +122,18 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingLeft: 20,
   },
+  textStyle:{  
+    margin: 24,  
+    fontSize: 25,  
+    fontWeight: 'bold',  
+    textAlign: 'center',  
+},  
+pickerStyle:{  
+    height: 150,  
+    width: "80%",  
+    color: '#344953',  
+    justifyContent: 'center',  
+}  
 });
 
 export default Home;

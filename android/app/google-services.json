@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "175555279901",
+    "firebase_url": "https://react-native-videocall-d-b0bf4.firebaseio.com",
+    "project_id": "react-native-videocall-d-b0bf4",
+    "storage_bucket": "react-native-videocall-d-b0bf4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:175555279901:android:74d27a95a932e09798daf4",
+        "android_client_info": {
+          "package_name": "com.videocallagora"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "175555279901-o6ha54okh95ino6e1n6avt1r9b0fq3qs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7OoUBPP6ipcZaTnD2UZwQGPj7EBwY5mY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "175555279901-o6ha54okh95ino6e1n6avt1r9b0fq3qs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

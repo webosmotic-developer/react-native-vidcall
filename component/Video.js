@@ -22,7 +22,7 @@ class Video extends Component {
       peerIds: [],                                //Array for storing connected peers
       uid: Math.floor(Math.random() * 100),       //Generate a UID for local user
       appid:'c8dce22b6277415da8f7a9c1727efc70',                           // this.props.AppID,                    //Enter the App ID generated from the Agora Website
-      channelName: this.props.navigation.state.params.ChannelName,             //  this.props.state.params.ChannelName,        //Channel Name for the current session
+      channelName:' this.props.navigation.state.params.ChannelName',             //  this.props.state.params.ChannelName,        //Channel Name for the current session
       vidMute: false,                             //State variable for Video Mute
       audMute: false,                             //State variable for Audio Mute
       joinSucceed: false,                         //State variable for storing success
@@ -95,7 +95,6 @@ class Video extends Component {
   videoView() {
     return (
       <View style={{ flex: 1 }}>
-      {console.log('peerIds ',this.state.peerIds)}
         {
           this.state.peerIds.length > 3                                     //view for four videostreams
             ? <View style={{ flex: 1 }}>
