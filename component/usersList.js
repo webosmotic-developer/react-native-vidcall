@@ -1,43 +1,45 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, AsyncStorage, TouchableOpacity, Platform ,FlatList ,Image } from 'react-native';
 import requestCameraAndAudioPermission from './permission';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import firestore from '@react-native-firebase/firestore';
+import * as _  from 'lodash';
 
-const usersList= [{}]
+const AppID = 'c8dce22b6277415da8f7a9c1727efc70';
+let userSubRef='';
+let newGroupMembers=[];
 
-class UsersList extends Component {
+export default function UsersList(props) {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-        usersList : usersList,
-      AppID: 'c8dce22b6277415da8f7a9c1727efc70',                    //Set your APPID here
-      ChannelName: '',                                  //Set a default channel or leave blank
-      isCreateGroup: false,
-      newGroupMembers:[]
-    };
+  const [usersList, setUsersList]= useState([{}]);
+  const [isCreateGroup, setIsCreateGroup]= useState(false);
+  const [userId, setUserId]= useState('');
+  const [userName, setUserName]= useState('');
+
+  useEffect(()=> {
+    // setUsersList([]);
+    // this.state = {
+    //     usersList : usersList,
+    //   isCreateGroup: false,
+    //   newGroupMembers:[]
+    // };
     if (Platform.OS === 'android') {                    //Request required permissions from Android
       requestCameraAndAudioPermission().then(_ => {
         console.log('requested!');
       });
     }
-  }
-
- async componentDidMount(){
-   await this.getUsers();
-  }
-
-  async componentDidUnMount(){
-    if(this.state.userSubRef){
-      this.state.userSubRef();
+   getUsers();
+   return () => {
+    if(userSubRef){
+      userSubRef();
     }
-  }
+  };
+  },[])
+
  
 //  Get list of existing users
-async getUsers(){
+async function getUsers(){
    let userRef = firestore().collection('users');
-   console.log('data : ', userRef);
    const currentUserId= await AsyncStorage.getItem('userId')
   return userRef.onSnapshot(async (querySnapshot) => {
     let data = await querySnapshot.docs.map((documentSnapshot, i) => {
@@ -48,46 +50,44 @@ async getUsers(){
         };
     });
     data.splice(data.findIndex((obj)=> {return obj.key == currentUserId}),1); // remove loggedIn user
-    this.setState({
-      usersList : data,
-      userId : currentUserId,
-      userName : await AsyncStorage.getItem('userName')
-  });
+    setUsersList(data);
+    setUserId(currentUserId);
+    setUserName(await AsyncStorage.getItem('userName'));
+
+    // this.setState({
+    //     usersList : data,
+    //     userId : currentUserId,
+    //     userName : await AsyncStorage.getItem('userName')
+    // });
   });
 }
 
- onSelectUser = async (selectedUser) => {
-  const chennelId = await this.createChannelId(selectedUser.key);
+async function onSelectUser(selectedUser){
+  const chennelId = await createChannelId(selectedUser.key);
   let conversationDB = firestore().collection('conversations');
   const conversationRef = conversationDB.where('chennelId','==',chennelId);
- const availablConversations = await conversationRef.get();
- let AppID = this.state.AppID; 
- console.log('chennelId',chennelId)
- if(!availablConversations.docs.length){
-     const newConversationObj = {
-        chennelId,
-        users : [{
-            userId: selectedUser.key,
-            name : selectedUser.name
-        },{
-            userId: this.state.userId,
-            name :  this.state.userName
+  const availablConversations = await conversationRef.get();
+
+    if(!availablConversations.docs.length){
+        const newConversationObj = {
+            chennelId,
+            users : [{
+                userId: selectedUser.key,
+                name : selectedUser.name
+            },{
+                userId: userId,
+                name : userName
+            }
+        ]
         }
-    ]
-     }
-    await conversationDB.add(newConversationObj)
- }
-this.props.navigation.navigate('VideoScreen',{ AppID, chennelId });
-
-
-    // let AppID = this.state.AppID;
-    // if (AppID !== '' && chennelId !== '') {
-    // }
+        await conversationDB.add(newConversationObj)
+    }
+   props.navigation.navigate('VideoScreen',{ AppID, chennelId });
   }
 
 //  Create cgennel ID by alfabate wise string of both users id
-async createChannelId(selectedUserID){
-  const str = selectedUserID +''+this.state.userId
+async function createChannelId(selectedUserID){
+  const str = selectedUserID +''+userId
   var arr = str.split('');
   var tmp;
   for(var i = 0; i < arr.length; i++){
@@ -104,71 +104,67 @@ async createChannelId(selectedUserID){
 }
 
 // Manage user Selection for group
-manageUserInGroup(selectedUserForGroup, index){
-  let tempList =  this.state.usersList;
-  const existingIndex = this.state.newGroupMembers.findIndex((obj)=> {return obj.userId == selectedUserForGroup.key});
+async function manageUserInGroup(selectedUserForGroup, index){
+  let tempList =  _.cloneDeep(usersList);
+  const existingIndex = newGroupMembers.findIndex((obj)=> {return obj.userId == selectedUserForGroup.key});
   if(existingIndex < 0){
-    if(this.state.newGroupMembers.length < 3 ){
-    this.state.newGroupMembers.push({userId: selectedUserForGroup.key , name : selectedUserForGroup.name})
+    if(newGroupMembers.length < 3 ){
+    newGroupMembers.push({userId: selectedUserForGroup.key , name : selectedUserForGroup.name})
     tempList[index].isSelected = true;
     }else{
       console.log('limit exceeded');
     }
   }else{
-    this.state.newGroupMembers.splice(existingIndex,1);
+    newGroupMembers.splice(existingIndex,1);
     tempList[index].isSelected = false;
   }
-  this.setState({
-     usersList: tempList
-  });
+  setUsersList(tempList)
 }
 
 // Create new group
-async createNewGroup(){
+async function createNewGroup(){
   let conversationRef = firestore().collection('conversations');
-  const groupUsers = this.state.newGroupMembers.map((user)=>{
+  const groupUsers = newGroupMembers.map((user)=>{
             return { userId : user.userId, name: user.name}
          })
-  groupUsers.push({userId: this.state.userId, name : this.state.userName});
+  groupUsers.push({userId: userId, name : userName});
   const newConversationObj = {
           chennelId : Math.random().toString(36).substring(7),
           users : groupUsers,
           isGroup: true,
           groupName: Math.random().toString(36).substring(7)+' Group',
-          createdBy: this.state.userId
+          createdBy: userId
         }
   await conversationRef.add(newConversationObj);
-  this.props.navigation.navigate('ConversationListScreen')
+  props.navigation.navigate('ConversationListScreen')
  }
 
-  render() {
     return (
       <View style={styles.container}>
         <TouchableOpacity  
         style={styles.groupCreation}
-        onPress={()=>{this.state.newGroupMembers.length ? this.createNewGroup() :this.setState({isCreateGroup : !this.state.isCreateGroup})}}
+        onPress={()=>{newGroupMembers.length ? createNewGroup() :setIsCreateGroup(!isCreateGroup)}}
         >
-          <Text style={styles.groupCreationText}>{this.state.isCreateGroup ? this.state.newGroupMembers.length ? 'Create now' : 'Select up to 4 group members' :  'Create a group +'}</Text>
-    {this.state.isCreateGroup && !this.state.newGroupMembers.length && <Text>Click here to cancel</Text> }
+          <Text style={styles.groupCreationText}>{isCreateGroup ? newGroupMembers.length ? 'Create now' : 'Select up to 3 group members' :  'Create a group +'}</Text>
+    {isCreateGroup && !newGroupMembers.length && <Text>Click here to cancel</Text> }
         </TouchableOpacity>
-        {this.state.usersList && this.state.usersList.length &&
-            this.state.usersList.map((item,i)=> {
+        {usersList && usersList.length &&
+            usersList.map((item,i)=> {
                 return(
-                    <TouchableOpacity key={item.key} style={styles.chennelContainer} onPress={()=> this.state.isCreateGroup ? this.manageUserInGroup(item ,i) : this.onSelectUser(item)}>
+                    <TouchableOpacity key={item.key} style={styles.chennelContainer} onPress={()=> isCreateGroup ? manageUserInGroup(item ,i) : onSelectUser(item)}>
                     <Image
                     style={styles.userImage}
                       backgroundColor="grey"
                       source={{uri : 'https://i.picsum.photos/id/19'+i+'/300/300.jpg'}}>
                     </Image> 
                    <Text style={styles.userNameText}>{item.name}</Text>
-                   {this.state.isCreateGroup &&<Text>{item.isSelected ? 'Selected' : 'Select'}</Text>}
+                   {isCreateGroup &&<Text>{item.isSelected ? 'Selected' : 'Select'}</Text>}
                     </TouchableOpacity>
                 )
             })
         }
       </View>
     );
-  }
 }
 
 const styles = StyleSheet.create({
@@ -212,5 +208,3 @@ groupCreationText:{
   fontSize:20
 }
 });
-
-export default UsersList;
