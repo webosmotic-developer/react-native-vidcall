@@ -17,12 +17,21 @@ import UsersList from '../component/usersList';
 const AuthStack = createStackNavigator({
     HomeScreen: {
         screen: Home,
+        navigationOptions: {
+            title: 'Login',
+        },
     },
     ConversationListScreen: {
         screen: ConversationList,
+        navigationOptions: {
+            title: 'Conversations',
+        },
     },
     UsersListScreen : {
         screen: UsersList,
+        navigationOptions: {
+            title: 'Select Users',
+        },
     },
     VideoScreen: {
         screen: Video,

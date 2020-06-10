@@ -103,16 +103,17 @@ console.log('chennelId : ',str);
                       backgroundColor="grey"
                       source={{uri : 'https://i.picsum.photos/id/19'+i+'/300/300.jpg'}}>
                     </Image> 
-                    {item.users && item.users.length && console.log('--> ',item.users[1])}
-                   {item.users && item.users.length && <Text style={styles.userNameText}>{ (item.users[0].userId !== this.state.userId)  ? item.users[0].name: item.users[1].name}</Text>}
+                    {/* {item.users &&item.users && item.users.length && console.log('--> ',item.users[1])} */}
+                    {item.isGroup ? <Text style={styles.userNameText}>{item.groupName}</Text> : item.users && item.users.length && <Text style={styles.userNameText}>{ (item.users[0].userId !== this.state.userId)  ? item.users[0].name: item.users[1].name}</Text>}
                     </TouchableOpacity>
                 )
             })
             :
-            <View><Text> You dont have any conversation yet</Text></View>
+            <View style={styles.emptyList}><Text> You dont have any conversations</Text></View>
         }
         <TouchableOpacity style={styles.addButton} onPress={()=>this.props.navigation.navigate('UsersListScreen')} >
-   <Icon name="plus"  size={40} color="#01a699" />
+   {/* <Icon name="plus"  size={40} color="#01a699" /> */}
+   <Text style={styles.addSymbol}>+</Text>
   </TouchableOpacity>
       </View>
     );
@@ -160,6 +161,14 @@ addButton :{
   height:70,
   backgroundColor:'#fff',
   borderRadius:100,
+},
+addSymbol:{
+  fontSize: 40,
+  textAlign:'center',
+},
+emptyList : {
+  alignItems:'center',
+  justifyContent:'center'
 }
 });
 

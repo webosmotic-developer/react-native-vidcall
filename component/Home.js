@@ -3,11 +3,11 @@ import { View, StyleSheet, Text, TextInput, TouchableOpacity, Platform ,AsyncSto
 import { Actions } from 'react-native-router-flux';
 import requestCameraAndAudioPermission from './permission';
 import firestore from '@react-native-firebase/firestore';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 class Home extends Component {
 
   constructor(props) {
-   
     super(props);
     this.state = {
       AppID: 'c8dce22b6277415da8f7a9c1727efc70',                    //Set your APPID here
