@@ -42,7 +42,7 @@ export default function Home(props) {
     let userRef = firestore().collection('users');
     console.log('data : ', userRef);
     userSubRef = await userRef.onSnapshot(async (querySnapshot) => {
-      console.log('querySnapshot -> ', querySnapshot);
+      // console.log('querySnapshot -> ', querySnapshot);
      let data = await querySnapshot.docs.map((documentSnapshot, i) => {
          return {
              ...documentSnapshot.data(),

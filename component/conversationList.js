@@ -81,6 +81,7 @@ async function createChannelId(selectedUserID){
            channelList.map((item,i)=> {
                 return(
                     <TouchableOpacity key={i} style={styles.chennelContainer} onPress={()=> handleSubmit(item.key)}>
+                    <View style={styles.userDetailsContainer}>
                     <Image
                     style={styles.userImage}
                       backgroundColor="grey"
@@ -88,6 +89,8 @@ async function createChannelId(selectedUserID){
                     </Image> 
                     {/* {item.users &&item.users && item.users.length && console.log('--> ',item.users[1])} */}
                     {item.isGroup ? <Text style={styles.userNameText}>{item.groupName}</Text> : item.users && item.users.length && <Text style={styles.userNameText}>{ (item.users[0].userId !== userId)  ? item.users[0].name: item.users[1].name}</Text>}
+                    </View>
+                    {/* <Text>{item.datetime}</Text> */}
                     </TouchableOpacity>
                 )
             })
@@ -111,12 +114,13 @@ const styles = StyleSheet.create({
   },
   chennelContainer:{
     alignItems:'center',
+    justifyContent:'space-between',
     borderWidth:0.4,
     borderRadius:5,
     flexDirection:'row',
     marginVertical:5,
     marginHorizontal:10,
-    paddingVertical:10,
+    padding:10,
     paddingLeft:10
   },
 userImage: {
@@ -150,5 +154,9 @@ addSymbol:{
 emptyList : {
   alignItems:'center',
   justifyContent:'center'
-}
+},
+userDetailsContainer:{
+  flexDirection:'row',
+    alignItems:'center',
+},
 });

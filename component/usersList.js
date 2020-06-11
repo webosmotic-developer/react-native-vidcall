@@ -4,6 +4,7 @@ import requestCameraAndAudioPermission from './permission';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import firestore from '@react-native-firebase/firestore';
 import * as _  from 'lodash';
+import { TextInput, ScrollView } from 'react-native-gesture-handler';
 
 const AppID = 'c8dce22b6277415da8f7a9c1727efc70';
 let userSubRef='';
@@ -15,6 +16,9 @@ export default function UsersList(props) {
   const [isCreateGroup, setIsCreateGroup]= useState(false);
   const [userId, setUserId]= useState('');
   const [userName, setUserName]= useState('');
+  const [groupName, setGroupName]= useState('');
+  const [showGroupNameValidation, setShowGroupNameValidation]= useState('');
+  
 
   useEffect(()=> {
     // setUsersList([]);
@@ -78,7 +82,8 @@ async function onSelectUser(selectedUser){
                 userId: userId,
                 name : userName
             }
-        ]
+        ],
+        datetime: new Date()
         }
         await conversationDB.add(newConversationObj)
     }
@@ -123,6 +128,9 @@ async function manageUserInGroup(selectedUserForGroup, index){
 
 // Create new group
 async function createNewGroup(){
+  // console.log('groupName' ,groupName);
+  if(groupName){
+  setShowGroupNameValidation(false);
   let conversationRef = firestore().collection('conversations');
   const groupUsers = newGroupMembers.map((user)=>{
             return { userId : user.userId, name: user.name}
@@ -132,37 +140,57 @@ async function createNewGroup(){
           chennelId : Math.random().toString(36).substring(7),
           users : groupUsers,
           isGroup: true,
-          groupName: Math.random().toString(36).substring(7)+' Group',
+          groupName:groupName,
           createdBy: userId
         }
   await conversationRef.add(newConversationObj);
+  newGroupMembers=[];
   props.navigation.navigate('ConversationListScreen')
+  }else{
+    setShowGroupNameValidation(true);
+  }
  }
 
     return (
       <View style={styles.container}>
         <TouchableOpacity  
         style={styles.groupCreation}
-        onPress={()=>{newGroupMembers.length ? createNewGroup() :setIsCreateGroup(!isCreateGroup)}}
-        >
-          <Text style={styles.groupCreationText}>{isCreateGroup ? newGroupMembers.length ? 'Create now' : 'Select up to 3 group members' :  'Create a group +'}</Text>
-    {isCreateGroup && !newGroupMembers.length && <Text>Click here to cancel</Text> }
+        onPress={()=>{newGroupMembers.length ? createNewGroup() :setIsCreateGroup(!isCreateGroup)}}>
+        <Text style={styles.groupCreationText}>{isCreateGroup ? newGroupMembers.length ? 'Create now' : 'Select up to 3 group members' :  'Create a group +'}</Text>
+        {(isCreateGroup && !newGroupMembers.length) ? <Text>Click here to cancel</Text>  :<></>}
         </TouchableOpacity>
+        {isCreateGroup && 
+        <>
+          <TextInput style={styles.groupNameInput} value={groupName} placeholder="Enter Group name" required 
+            onChangeText={(value)=>{
+              setGroupName(value);
+            }}
+          ></TextInput>
+         {showGroupNameValidation ? <Text style={styles.validationMessage}>Enter Group name</Text> : <></> }
+        </>
+        }
+        <ScrollView>
+
         {usersList && usersList.length &&
             usersList.map((item,i)=> {
                 return(
                     <TouchableOpacity key={item.key} style={styles.chennelContainer} onPress={()=> isCreateGroup ? manageUserInGroup(item ,i) : onSelectUser(item)}>
+                   <View style={styles.userDetailsContainer}>
                     <Image
                     style={styles.userImage}
                       backgroundColor="grey"
                       source={{uri : 'https://i.picsum.photos/id/19'+i+'/300/300.jpg'}}>
                     </Image> 
                    <Text style={styles.userNameText}>{item.name}</Text>
-                   {isCreateGroup &&<Text>{item.isSelected ? 'Selected' : 'Select'}</Text>}
+                   </View>
+                   <View>
+                   {isCreateGroup &&<Text style={styles.selectText}>{item.isSelected ? 'Selected' : 'Select'}</Text>}
+                    </View>
                     </TouchableOpacity>
                 )
             })
         }
+        </ScrollView>
       </View>
     );
 }
@@ -178,33 +206,56 @@ const styles = StyleSheet.create({
     alignItems:'center',
     borderWidth:0.4,
     borderRadius:5,
+    justifyContent:'space-between',
     flexDirection:'row',
     marginVertical:5,
     marginHorizontal:10,
-    paddingVertical:10,
+    padding:10,
     paddingLeft:10
   },
-userImage: {
-  height :50,
-  width : 50,
-  borderRadius:25,
-  marginHorizontal: 8,
-}, 
-userNameText :{
-  fontSize:18,
-  marginLeft:8,
-  fontWeight:'600'
-},
-groupCreation:{
-  justifyContent:'center',
-  alignItems:'center',
-  padding:15,
-  margin:10,
-  borderWidth: 1,
-  borderRadius:15,
-  borderStyle:'dashed'
-},
-groupCreationText:{
-  fontSize:20
-}
+  userDetailsContainer:{
+    flexDirection:'row',
+      alignItems:'center',
+  },
+  userImage: {
+    height :50,
+    width : 50,
+    borderRadius:25,
+    marginHorizontal: 8,
+  }, 
+  userNameText :{
+    fontSize:18,
+    marginLeft:8,
+    fontWeight:'600'
+  },
+  groupCreation:{
+    justifyContent:'center',
+    alignItems:'center',
+    padding:15,
+    margin:10,
+    borderWidth: 1,
+    borderRadius:15,
+    borderStyle:'dashed'
+  },
+  groupCreationText:{
+    fontSize:20
+  },
+  selectText:{
+    textAlign:'right'
+  },
+  groupNameInput:{
+    textAlign:'center',
+    fontWeight:'bold',
+    fontSize:24,
+    borderWidth:1,
+    borderStyle:'dashed',
+    borderRadius:15,
+    margin:10
+  },
+  validationMessage:{
+    textAlign:'center',
+    fontWeight:'bold',
+    fontSize:12,
+    color: 'red'
+  }
 });
