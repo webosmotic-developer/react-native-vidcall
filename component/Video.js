@@ -24,7 +24,7 @@ export default function VideoWithhooks(props) {
   const [joinSucceed, setJoinSucceed]= useState(false);
   // const [channelId, setChannelId]= useState(props.navigation.state.params.chennelId);
   const channelId = props.navigation.state.params.chennelId;
-
+ console.log('channelId : ',channelId);
   if (Platform.OS === 'android') {
     const config = {                            //Setting config of the app
       appid: appid,                  //App ID
@@ -75,11 +75,11 @@ export default function VideoWithhooks(props) {
    setAudMute(!mute);
   }
   
-  // Managw Mute Videos
+  // Manage Mute Video
   async function toggleVideo(){
     let mute = _.cloneDeep(vidMute);
     // console.log('Video toggle', mute);
-    setVidMute(!mute)
+   setVidMute(!mute)
     RtcEngine.muteLocalVideoStream(!mute);
   }
   

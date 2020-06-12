@@ -21,6 +21,7 @@ export default function UsersList(props) {
   
 
   useEffect(()=> {
+    newGroupMembers=[];
     // setUsersList([]);
     // this.state = {
     //     usersList : usersList,
@@ -170,18 +171,17 @@ async function createNewGroup(){
         </>
         }
         <ScrollView>
-
         {usersList && usersList.length &&
             usersList.map((item,i)=> {
                 return(
                     <TouchableOpacity key={item.key} style={styles.chennelContainer} onPress={()=> isCreateGroup ? manageUserInGroup(item ,i) : onSelectUser(item)}>
                    <View style={styles.userDetailsContainer}>
-                    <Image
-                    style={styles.userImage}
-                      backgroundColor="grey"
-                      source={{uri : 'https://i.picsum.photos/id/19'+i+'/300/300.jpg'}}>
-                    </Image> 
-                   <Text style={styles.userNameText}>{item.name}</Text>
+                      <Image
+                      style={styles.userImage}
+                        backgroundColor="grey"
+                        source={{uri : 'https://i.picsum.photos/id/19'+i+'/300/300.jpg'}}>
+                      </Image> 
+                    <Text style={styles.userNameText}>{item.name}</Text>
                    </View>
                    <View>
                    {isCreateGroup &&<Text style={styles.selectText}>{item.isSelected ? 'Selected' : 'Select'}</Text>}

@@ -50,8 +50,8 @@ async function getConversations(){
 }
 
 // Open Video call 
- async function handleSubmit (selectedUserID){
-  const chennelId = await createChannelId(selectedUserID);
+ async function handleSubmit (selectedUser){
+    const chennelId = selectedUser.challengeId ? selectedUser.challengeId : await createChannelId(selectedUser.key);
     if (AppID !== '' && chennelId !== '') {
       props.navigation.navigate('VideoScreen',{ AppID, chennelId });
     }
@@ -80,7 +80,7 @@ async function createChannelId(selectedUserID){
         {channelList && channelList.length ?
            channelList.map((item,i)=> {
                 return(
-                    <TouchableOpacity key={i} style={styles.chennelContainer} onPress={()=> handleSubmit(item.key)}>
+                    <TouchableOpacity key={i} style={styles.chennelContainer} onPress={()=> handleSubmit(item)}>
                     <View style={styles.userDetailsContainer}>
                     <Image
                     style={styles.userImage}
