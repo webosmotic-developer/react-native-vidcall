@@ -51,7 +51,7 @@ async function getConversations(){
 
 // Open Video call 
  async function handleSubmit (selectedUser){
-    const chennelId = selectedUser.challengeId ? selectedUser.challengeId : await createChannelId(selectedUser.key);
+    const chennelId = selectedUser.chennelId ? selectedUser.chennelId : await createChannelId(selectedUser.key);
     if (AppID !== '' && chennelId !== '') {
       props.navigation.navigate('VideoScreen',{ AppID, chennelId });
     }
